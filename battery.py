@@ -1,3 +1,6 @@
+from datetime import datetime, time
+
+
 feedin = []
 previous_g = None
 
@@ -38,6 +41,12 @@ def battery_control():
     elif g > 0 and soc > 5 and wallbox < 10:
         mode = 'discharge'
         discharge_new = min(g, MAX_DISCHARGE)
+        # At night, we empty the whole battery. Since power usage fluctuates, we
+        # sometimes feed in too much. Always feed in 20W less during that time to avoid
+        # wasting power.
+        now = datetime.now().time()
+        if now >= time(21, 0) or now < time(8, 0):
+            g -= 20
     elif soc < 100.0 and (all([x < -20.0 for x in feedin]) or wallbox > 10):
         mode = 'charge'
         # Charge battery before car: Use the power the wallbox consumes so evcc switches it off
