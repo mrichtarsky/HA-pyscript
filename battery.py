@@ -46,6 +46,6 @@ def battery_control():
         mode = 'idle'
     if discharge == discharge_new:
         discharge_new += 0.1
-    log.error(f'grid={g}, l1={l1}, l2={l2}, l3={l3}, l1+l2+l3={l1+l2+l3}, wallbox={wallbox}, soc={soc}, discharge={discharge}, mode={mode}, discharge_new={discharge_new}')
+    log.error(f'usage={g-discharge}, grid={g}, l1={l1}, l2={l2}, l3={l3}, l1+l2+l3={l1+l2+l3}, wallbox={wallbox}, soc={soc}, discharge={discharge}, mode={mode}, discharge_new={discharge_new}')
     mqtt.publish(topic='homeassistant/number/MSA-280024340863/power_ctrl/set', payload=discharge_new)
     state.set('number.msa_280024340863', discharge_new)
