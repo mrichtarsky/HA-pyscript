@@ -10,7 +10,7 @@ def battery_control():
     - L1 is not available and must be calculated from the other values
     '''
     global previous_g
-    CHARGE_MAX_FEEDIN_PERCENTAGE = 0.9
+    CHARGE_MAX_FEEDIN_PERCENTAGE = 0.98
     MAX_DISCHARGE = 2000.0
     MAX_CHARGE = 1000.0
     battery_enabled = state.get('input_boolean.custom_enable_disable_battery') == 'on'
