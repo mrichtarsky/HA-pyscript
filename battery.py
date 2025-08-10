@@ -38,7 +38,7 @@ def battery_control():
     discharge_new = 0.0
     if not battery_enabled:
         mode = 'disabled'
-        return
+        discharge_new = discharge
     elif g > 0 and soc > 5 and wallbox < 10:
         mode = 'discharge'
         discharge_new = min(g, MAX_DISCHARGE)
