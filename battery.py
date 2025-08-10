@@ -24,7 +24,7 @@ def battery_control():
     # compensate again because the previous compensation is not reflected yet.
     if g == previous_g:
         return
-    previous_g = None
+    previous_g = g
     g += discharge
     # Positive is feedin, so negate
     l2 = -float(state.get('sensor.solax_measured_power_l2'))
