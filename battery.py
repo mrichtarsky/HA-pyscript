@@ -47,7 +47,7 @@ def battery_control():
         # wasting power.
         now = datetime.now().time()
         if now >= time(21, 0) or now < time(8, 0):
-            discharge_new -= 20
+            discharge_new -= 100
     elif soc < 100.0 and (all([x < -20.0 for x in feedin]) or wallbox > 10):
         mode = 'charge'
         # Charge battery before car: Use the power the wallbox consumes so evcc switches it off
