@@ -16,6 +16,7 @@ def battery_control():
     CHARGE_MAX_FEEDIN_PERCENTAGE = 0.98
     MAX_DISCHARGE = 2000.0
     MAX_CHARGE = 1000.0
+    MIN_CHARGING_POWER = 1100
     battery_enabled = state.get('input_boolean.custom_enable_disable_battery') == 'on'
     discharge = float(state.get('sensor.msa_280024340863_power_from_to_battery'))
     g = float(state.get('sensor.evcc_grid_power'))
@@ -36,6 +37,11 @@ def battery_control():
     if len(feedin) > 6*3:  # 3 minutes
         feedin.pop(0)
     discharge_new = 0.0
+    evcc_mode = select.evcc_garage_mode
+    can_consume_from_wallbox = (
+        evcc_mode == 'Solar' and wallbox > 10
+        or evcc_mode == 'Min+Solar' and wallbox > MIN_CHARGING_POWER
+    )
     if not battery_enabled:
         mode = 'disabled'
         discharge_new = discharge
@@ -48,10 +54,14 @@ def battery_control():
         now = datetime.now().time()
         if now >= time(17, 0) or now < time(9, 0):
             discharge_new -= 100
-    elif soc < 100.0 and (all([x < -20.0 for x in feedin]) or wallbox > 10):
+    elif soc < 100.0 and (all([x < -20.0 for x in feedin]) or can_consume_from_wallbox):
         mode = 'charge'
         # Charge battery before car: Use the power the wallbox consumes so evcc switches it off
-        discharge_new = -min(CHARGE_MAX_FEEDIN_PERCENTAGE * (abs(g) + wallbox), MAX_CHARGE)
+        if evcc_mode == 'Solar':
+            from_wallbox = wallbox
+        else:
+            from_wallbox = wallbox - MIN_CHARGING_POWER
+        discharge_new = -min(CHARGE_MAX_FEEDIN_PERCENTAGE * (abs(g) + from_wallbox), MAX_CHARGE)
     else:
         mode = 'idle'
     if discharge == discharge_new:
