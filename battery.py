@@ -17,6 +17,8 @@ def battery_control():
     MAX_DISCHARGE = 2000.0
     MAX_CHARGE = 1000.0
     MIN_CHARGING_POWER = 1100
+    now = datetime.now()
+
     battery_enabled = state.get('input_boolean.custom_enable_disable_battery') == 'on'
     discharge = float(state.get('sensor.msa_280024340863_power_from_to_battery'))
     g = float(state.get('sensor.evcc_grid_power'))
@@ -38,10 +40,15 @@ def battery_control():
         feedin.pop(0)
     discharge_new = 0.0
     evcc_mode = select.evcc_garage_mode
-    can_consume_from_wallbox = (
-        evcc_mode == 'Solar' and wallbox > 10
-        or evcc_mode == 'Min+Solar' and wallbox > MIN_CHARGING_POWER
-    )
+    # In winter, we do not have enough power for car and battery. Rather charge the
+    # car to save battery cycles.
+    if now.month >= 9 and now.month <= 3:
+        consume_from_wallbox = False
+    else:
+        consume_from_wallbox = (
+            evcc_mode == 'Solar' and wallbox > 10
+            or evcc_mode == 'Min+Solar' and wallbox > MIN_CHARGING_POWER
+        )
     if not battery_enabled:
         mode = 'disabled'
         discharge_new = discharge
@@ -51,10 +58,9 @@ def battery_control():
         # At night, we empty the whole battery. Since power usage fluctuates, we
         # sometimes feed in too much. Always feed in 100W less during that time to avoid
         # wasting power.
-        now = datetime.now().time()
-        if now >= time(17, 0) or now < time(9, 0):
+        if now.hour >= 17 or now.hour < 9:
             discharge_new -= 100
-    elif soc < 100.0 and (all([x < -20.0 for x in feedin]) or can_consume_from_wallbox):
+    elif soc < 100.0 and (all([x < -20.0 for x in feedin]) or consume_from_wallbox):
         mode = 'charge'
         # Charge battery before car: Use the power the wallbox consumes so evcc switches it off
         if evcc_mode == 'Solar':
