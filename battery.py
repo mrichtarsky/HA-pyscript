@@ -62,11 +62,12 @@ def battery_control():
             discharge_new -= 100
     elif soc < 100.0 and (all([x < -20.0 for x in feedin]) or consume_from_wallbox):
         mode = 'charge'
-        # Charge battery before car: Use the power the wallbox consumes so evcc switches it off
-        if evcc_mode == 'Solar':
-            from_wallbox = wallbox
-        else:
-            from_wallbox = wallbox - MIN_CHARGING_POWER
+        if consume_from_wallbox:
+            # Charge battery before car: Use the power the wallbox consumes so evcc switches it off
+            if evcc_mode == 'Solar':
+                from_wallbox = wallbox
+            else:
+                from_wallbox = wallbox - MIN_CHARGING_POWER
         discharge_new = -min(CHARGE_MAX_FEEDIN_PERCENTAGE * (abs(g) + from_wallbox), MAX_CHARGE)
     else:
         mode = 'idle'
