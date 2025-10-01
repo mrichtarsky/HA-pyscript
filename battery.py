@@ -70,7 +70,7 @@ def battery_control():
                 from_wallbox = wallbox - MIN_CHARGING_POWER
             discharge_new = -min(CHARGE_MAX_FEEDIN_PERCENTAGE * (abs(g) + from_wallbox), MAX_CHARGE)
         else:
-            discharge_new = -min(CHARGE_MAX_FEEDIN_PERCENTAGE * (abs(g)), MAX_CHARGE)
+            discharge_new = 0
     else:
         mode = 'idle'
     if discharge == discharge_new:
