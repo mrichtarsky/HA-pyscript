@@ -33,7 +33,10 @@ def battery_control():
     l2 = -float(state.get('sensor.solax_measured_power_l2'))
     l3 = -float(state.get('sensor.solax_measured_power_l3')) + discharge
     soc = float(state.get('sensor.msa_280024340863_state_of_charge'))
-    wallbox = 1000 * float(state.get('sensor.evcc_garage_charge_power'))
+    try:
+        wallbox = 1000 * float(state.get('sensor.evcc_garage_charge_power'))
+    except:
+        wallbox = 0
     l1 = g - l2 - l3
     feedin.append(g)
     if len(feedin) > 6*3:  # 3 minutes
